@@ -1,0 +1,559 @@
+!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Christian Streaks</title>
+<style>
+:root{
+  --bg:#101114; --card:#1a1c21; --card2:#22252c; --line:#2c2f38;
+  --txt:#f2f2f4; --mut:#9aa0ad; --gold:#e8c15a; --green:#3ecf8e; --red:#ff6b6b; --blue:#5b8def;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+body{font-family:'Segoe UI', Tahoma, Arial, sans-serif; background:var(--bg); color:var(--txt); min-height:100vh;}
+button,input,textarea{font:inherit; color:inherit;}
+.scr{display:none; max-width:480px; margin:0 auto; min-height:100vh; flex-direction:column;}
+.scr.on{display:flex;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin:0 16px 14px;}
+.mut{color:var(--mut);} .sm{font-size:13px;} .center{text-align:center;}
+.btn{background:var(--txt); color:var(--bg); border:none; border-radius:12px; padding:14px; width:100%; font-weight:600; cursor:pointer;}
+.btn:disabled{opacity:.4;}
+.btn2{background:var(--card2); border:1px solid var(--line); color:var(--txt); border-radius:12px; padding:10px 16px; cursor:pointer;}
+input[type=text],input[type=password],textarea{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:14px; outline:none;}
+input:focus{border-color:var(--gold);}
+.topbar{display:flex; align-items:center; justify-content:space-between; padding:16px 16px 8px;}
+.topbar .ttl{font-size:22px; font-weight:700;}
+.iconbtn{background:none; border:none; font-size:24px; cursor:pointer; padding:6px;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:0 16px 14px;}
+.big{font-size:38px; font-weight:700; font-variant-numeric:tabular-nums;}
+.nav{position:sticky; bottom:0; display:flex; background:var(--card); border-top:1px solid var(--line); padding:8px 0 calc(8px + env(safe-area-inset-bottom));}
+.nav button{flex:1; background:none; border:none; color:var(--mut); font-size:11px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 2px;}
+.nav button.on{color:var(--txt);}
+.nav svg{width:22px; height:22px;}
+video,canvas,img.pv{width:100%; border-radius:16px; display:block; background:#000;}
+.shutter{width:68px; height:68px; border-radius:50%; border:5px solid var(--txt); background:none; cursor:pointer; position:relative; margin:0 auto; display:block;}
+.shutter::after{content:''; position:absolute; inset:7px; border-radius:50%; background:var(--txt); transition:transform .15s;}
+.shutter:active::after{transform:scale(.8);}
+.overlay{position:fixed; inset:0; background:rgba(8,9,11,.96); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; z-index:50; text-align:center; padding:24px;}
+.spin{animation:sp 1s linear infinite; font-size:32px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.listitem{background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:14px; margin:0 16px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
+.avt{width:42px; height:42px; border-radius:50%; background:var(--gold); color:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; flex-shrink:0;}
+.msg{max-width:78%; padding:10px 14px; border-radius:14px; font-size:15px; line-height:22px;}
+.msg.me{background:var(--gold); color:var(--bg); margin-inline-start:auto;}
+.msg.them{background:var(--card2); border:1px solid var(--line);}
+.hr{height:1px; background:var(--line); margin:14px 0;}
+.langtog{position:absolute; top:16px; inset-inline-start:16px; z-index:5;}
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<!-- ======= LOGIN ======= -->
+<div id="scr-login" class="scr on" style="justify-content:center; position:relative;">
+  <button class="btn2 langtog" id="lgLang">🌐 <span id="lgLangLbl">EN</span></button>
+  <div class="card" style="margin:16px;">
+    <div class="center" style="font-size:28px; font-weight:800; margin-bottom:4px;">✝ <span data-t="app">Streaks</span></div>
+    <div class="center mut sm" style="margin-bottom:24px;" data-t="tag">اقرأ الكتاب المقدس يومياً واكسب النقاط</div>
+    <div id="loginBox" style="display:flex; flex-direction:column; gap:12px;">
+      <input type="text" id="li-user" data-ph="username" placeholder="اسم المستخدم">
+      <input type="password" id="li-pass" data-ph="password" placeholder="كلمة السر">
+      <div class="sm mut" id="li-err" style="color:var(--red); min-height:18px;"></div>
+      <button class="btn" id="li-btn" data-t="login">تسجيل الدخول</button>
+      <button class="btn2" id="go-signup" data-t="createAcc">إنشاء حساب جديد</button>
+    </div>
+    <div id="signupBox" style="display:none; flex-direction:column; gap:12px;">
+      <input type="text" id="su-name" data-ph="dispName" placeholder="الاسم الظاهر">
+      <input type="text" id="su-user" data-ph="username" placeholder="اسم المستخدم">
+      <input type="password" id="su-pass" data-ph="password" placeholder="كلمة السر">
+      <div class="sm" id="su-err" style="color:var(--red); min-height:18px;"></div>
+      <button class="btn" id="su-btn" data-t="signup">إنشاء الحساب</button>
+      <button class="btn2" id="go-login" data-t="haveAcc">عندي حساب بالفعل</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= HOME ======= -->
+<div id="scr-home" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" id="home-lang">🌐</button>
+    <div class="ttl" data-t="app">Streaks</div>
+    <button class="iconbtn" id="home-cam" title="camera">📷</button>
+  </div>
+  <div class="grid2">
+    <div class="card" style="margin:0; text-align:center;"><div class="big" id="h-pts">0</div><div class="mut sm" data-t="points">النقاط</div></div>
+    <div class="card" style="margin:0; text-align:center;"><div class="big" id="h-str">0</div><div class="mut sm" data-t="days">أيام الاستريك</div></div>
+  </div>
+  <div class="card center">
+    <div class="mut sm" style="margin-bottom:10px;" data-t="verseToday">آية اليوم</div>
+    <div id="h-verse" style="font-size:18px; line-height:32px; font-weight:600;"></div>
+    <div id="h-vref" class="mut sm" style="margin:8px 0 14px;"></div>
+    <button class="btn2" id="h-read" data-t="startReading">ابدأ القراءة</button>
+  </div>
+  <div class="card center">
+    <div class="mut sm" style="margin-bottom:10px;" data-t="saintToday">عيد القديس اليوم</div>
+    <div style="font-size:20px; font-weight:700;" id="h-saint"></div>
+    <div class="mut sm" id="h-sdate"></div>
+  </div>
+  <div class="card center">
+    <div style="font-size:20px; margin-bottom:6px;">🕊 <span data-t="yourTime">وقتك مع ربنا</span></div>
+    <div class="mut sm" style="margin-bottom:12px;" data-t="timeDesc">كل يوم تقرأ فيه الكتاب المقدس يزيد استريكك</div>
+    <label class="row" style="justify-content:center; gap:10px; cursor:pointer;">
+      <span class="sm" data-t="remind">تذكيرين يومياً (صباحاً ومساءً)</span>
+      <input type="checkbox" id="h-remind" style="width:20px; height:20px; accent-color:var(--gold);">
+    </label>
+  </div>
+  <div style="flex:1"></div>
+  <div class="nav" id="nav-home"></div>
+</div>
+
+<!-- ======= CAMERA ======= -->
+<div id="scr-cam" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" id="cam-x">✕</button>
+    <div class="ttl" style="font-size:18px;" data-t="camMode">وضع الكاميرا</div>
+    <span style="width:36px"></span>
+  </div>
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:14px;">
+    <div style="position:relative;">
+      <video id="cam-vid" autoplay playsinline muted></video>
+      <div id="cam-fallback" style="display:none; padding:30px 16px; text-align:center;">
+        <div style="font-weight:600; margin-bottom:8px;" data-t="noCam">الكاميرا غير متاحة — اسمح بالإذن أو ارفع صورة</div>
+        <label class="btn2" style="display:inline-block; cursor:pointer;"><span data-t="upload">📂 ارفع صورة من المعرض</span><input type="file" id="cam-file" accept="image/*" style="display:none;"></label>
+      </div>
+    </div>
+    <div class="center">
+      <button class="shutter" id="cam-snap" style="display:none;"></button>
+      <div class="mut sm" style="margin-top:10px;" data-t="camHint">وجّه الكاميرا على الآية واضغط الزرار</div>
+    </div>
+  </div>
+  <div id="cam-prev" style="display:none; padding:0 16px; display:none; flex-direction:column; gap:14px;">
+    <canvas id="cam-canvas" width="720" height="960"></canvas>
+    <div class="row">
+      <button class="btn2" id="cam-retake" style="flex:1;" data-t="retake">🔁 إعادة</button>
+      <button class="btn" id="cam-ok" style="flex:2;" data-t="ok">✓ موافق — تحقق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= SEARCH ======= -->
+<div id="scr-search" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" data-back>→</button>
+    <div class="ttl" style="font-size:18px;" data-t="search">البحث عن أعضاء</div>
+    <span style="width:36px"></span>
+  </div>
+  <div style="padding:0 16px 14px;"><input type="text" id="srch-in" data-ph="searchPh" placeholder="ابحث باسم المستخدم…"></div>
+  <div id="srch-res"></div>
+  <div style="flex:1"></div>
+  <div class="nav" id="nav-search"></div>
+</div>
+
+<!-- ======= PROFILE ======= -->
+<div id="scr-profile" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" data-back>→</button>
+    <div class="ttl" style="font-size:18px;" data-t="profile">الملف الشخصي</div>
+    <span style="width:36px"></span>
+  </div>
+  <div class="card center">
+    <div class="avt" id="pf-avt" style="margin:0 auto 10px; width:64px; height:64px; font-size:28px;">؟</div>
+    <div style="font-size:20px; font-weight:700;" id="pf-name"></div>
+    <div class="mut sm" id="pf-user"></div>
+  </div>
+  <div class="grid2">
+    <div class="card" style="margin:0; text-align:center;"><div class="big" id="pf-pts">0</div><div class="mut sm" data-t="points">النقاط</div></div>
+    <div class="card" style="margin:0; text-align:center;"><div class="big" id="pf-str">0</div><div class="mut sm" data-t="days">أيام الاستريك</div></div>
+  </div>
+  <div style="padding:0 16px;"><button class="btn" id="pf-chat" data-t="sendMsg">💬 راسله</button></div>
+  <div style="flex:1"></div>
+  <div class="nav" id="nav-profile"></div>
+</div>
+
+<!-- ======= CHAT ======= -->
+<div id="scr-chat" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" data-back>→</button>
+    <div class="ttl" style="font-size:18px;" id="ch-name"></div>
+    <span style="width:36px"></span>
+  </div>
+  <div id="ch-box" style="flex:1; overflow-y:auto; padding:4px 16px; display:flex; flex-direction:column; gap:8px;"></div>
+  <div class="row" style="padding:12px 16px;">
+    <input type="text" id="ch-in" data-ph="typeMsg" placeholder="اكتب رسالتك…">
+    <button class="btn2" id="ch-send" data-t="send">إرسال</button>
+  </div>
+</div>
+
+<!-- ======= NOTES ======= -->
+<div id="scr-notes" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" data-back>→</button>
+    <div class="ttl" style="font-size:18px;" data-t="notes">مذكراتي الروحية</div>
+    <span style="width:36px"></span>
+  </div>
+  <div class="card" style="display:flex; flex-direction:column; gap:10px;">
+    <textarea id="nt-in" rows="3" data-ph="notePh" placeholder="اكتب خاطرة أو صلاة أو آية لامستك…"></textarea>
+    <button class="btn" id="nt-add" data-t="saveNote">💾 حفظ الملاحظة</button>
+  </div>
+  <div id="nt-list"></div>
+  <div style="flex:1"></div>
+  <div class="nav" id="nav-notes"></div>
+</div>
+
+<!-- ======= REDEEM ======= -->
+<div id="scr-redeem" class="scr">
+  <div class="topbar">
+    <button class="iconbtn" data-back>→</button>
+    <div class="ttl" style="font-size:18px;" data-t="redeem">استبدال النقاط</div>
+    <span style="width:36px"></span>
+  </div>
+  <div class="card center"><div class="big" id="rd-pts">0</div><div class="mut sm" data-t="points">النقاط</div></div>
+  <div class="card" style="display:flex; flex-direction:column; gap:10px;">
+    <input type="text" id="rd-amt" data-ph="amountPh" placeholder="عدد النقاط المراد استبدالها">
+    <a class="btn" id="rd-wa" target="_blank" style="background:var(--green); text-decoration:none; text-align:center; display:block;" data-t="waBtn">📱 ابعث الطلب على واتساب</a>
+    <div class="mut sm" data-t="waHint">يفتح واتساب على الرقم 01283322312 برسالة جاهزة.</div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="nav" id="nav-redeem"></div>
+</div>
+
+<!-- ======= MORE ======= -->
+<div id="scr-more" class="scr">
+  <div class="topbar"><div class="ttl" style="font-size:18px;" data-t="more">المزيد</div><span></span></div>
+  <div class="listitem" data-go="scr-notes"><span data-t="notes">📝 مذكراتي الروحية</span><span class="mut">‹</span></div>
+  <div class="listitem" data-go="scr-redeem"><span data-t="redeem">🎁 استبدال النقاط</span><span class="mut">‹</span></div>
+  <div class="listitem" data-go="scr-search"><span data-t="search">🔍 البحث عن أعضاء</span><span class="mut">‹</span></div>
+  <div class="listitem" id="more-lang"><span>🌐 <span data-t="language">اللغة</span></span><span class="mut" id="more-langlbl">English</span></div>
+  <div class="listitem" id="more-logout" style="color:var(--red);"><span data-t="logout">🚪 تسجيل الخروج</span><span>‹</span></div>
+  <div class="card mut sm" style="margin-top:16px;">Christian Streaks ✝ · v1.0</div>
+  <div style="flex:1"></div>
+  <div class="nav" id="nav-more"></div>
+</div>
+
+<div id="ai-ov" class="overlay" style="display:none;"></div>
+
+<script>
+/* ================= i18n ================= */
+var L={
+ar:{app:'Streaks',tag:'اقرأ الكتاب المقدس يومياً واكسب النقاط',username:'اسم المستخدم',password:'كلمة السر',login:'تسجيل الدخول',createAcc:'إنشاء حساب جديد',signup:'إنشاء الحساب',haveAcc:'عندي حساب بالفعل',dispName:'الاسم الظاهر',points:'النقاط',days:'أيام الاستريك',verseToday:'آية اليوم',startReading:'ابدأ القراءة',saintToday:'عيد القديس اليوم',yourTime:'وقتك مع ربنا',timeDesc:'كل يوم تقرأ فيه الكتاب المقدس يزيد استريكك',remind:'تذكيرين يومياً (صباحاً ومساءً)',home:'الرئيسية',camera:'الكاميرا',myPoints:'نقاطي',navNotes:'مذكراتي',notes:'مذكراتي الروحية',saints:'القديسون',more:'المزيد',camMode:'وضع الكاميرا',noCam:'الكاميرا غير متاحة — اسمح بالإذن أو ارفع صورة',upload:'📂 ارفع صورة من المعرض',camHint:'وجّه الكاميرا على الآية واضغط الزرار',retake:'🔁 إعادة',ok:'✓ موافق — تحقق',search:'البحث عن أعضاء',searchPh:'ابحث باسم المستخدم…',profile:'الملف الشخصي',sendMsg:'💬 راسله',send:'إرسال',typeMsg:'اكتب رسالتك…',notes:'📝 مذكراتي الروحية',notePh:'اكتب خاطرة أو صلاة أو آية لامستك…',saveNote:'💾 حفظ الملاحظة',redeem:'استبدال النقاط',amountPh:'عدد النقاط المراد استبدالها',waBtn:'📱 ابعث الطلب على واتساب',waHint:'يفتح واتساب على الرقم 01283322312 برسالة جاهزة.',language:'اللغة',logout:'🚪 تسجيل الخروج',taken:'الاسم محجوز، جرّب غيره',wrongPass:'كلمة السر غلط',noUser:'مفيش حساب بالاسم ده',fillAll:'املأ كل الخانات',shortPass:'كلمة السر لازم 4 حروف على الأقل',loggedOut:'تم تسجيل الخروج',doneToday:'✅ خلاص خدت نقاط النهاردة — استنى بكرة',verifyOk:'تم التحقق — دي آية من الكتاب المقدس',badImg:'الصورة مش واضحة، صوّر تاني في إضاءة كويسة',ptsAdded:'+20 نقطة',streakNow:'الاستريك واصل',ptsBal:'رصيدك',redeemAsk:'عايز أستبدل نقطة من تطبيق Christian Streaks',noResults:'مفيش نتائج',members:'عضو',online:'نشط'},
+en:{app:'Streaks',tag:'Read the Bible daily and earn points',username:'Username',password:'Password',login:'Log in',createAcc:'Create account',signup:'Sign up',haveAcc:'I already have an account',dispName:'Display name',points:'Points',days:'Streak days',verseToday:'Verse of the day',startReading:'Start reading',saintToday:'Saint of the day',yourTime:'Your time with God',timeDesc:'Every day you read the Bible your streak grows',remind:'Two daily reminders (morning & evening)',home:'Home',camera:'Camera',myPoints:'My points',navNotes:'My notes',saints:'Saints',more:'More',camMode:'Camera mode',noCam:'Camera unavailable — allow permission or upload a photo',upload:'📂 Upload from gallery',camHint:'Point the camera at the verse and press the button',retake:'🔁 Retake',ok:'✓ OK — verify',search:'Search members',searchPh:'Search by username…',profile:'Profile',sendMsg:'💬 Message',send:'Send',typeMsg:'Type a message…',notes:'📝 My spiritual notes',notePh:'Write a thought, prayer or verse that touched you…',saveNote:'💾 Save note',redeem:'Redeem points',amountPh:'Points to redeem',waBtn:'📱 Send request via WhatsApp',waHint:'Opens WhatsApp to 01283322312 with a ready message.',language:'Language',logout:'🚪 Log out',taken:'Username taken, try another',wrongPass:'Wrong password',noUser:'No account with this name',fillAll:'Fill all fields',shortPass:'Password must be 4+ characters',loggedOut:'Logged out',doneToday:'✅ You already earned today\'s points — come back tomorrow',verifyOk:'Verified — this is a Bible verse',badImg:'Image unclear, retake with good lighting',ptsAdded:'+20 points',streakNow:'Streak is now',ptsBal:'Your balance',redeemAsk:'I want to redeem points from Christian Streaks app',noResults:'No results',members:'members',online:'active'}};
+var lang=localStorage.getItem('cs_lang')||'ar';
+function t(k){return L[lang][k]||k;}
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-t]').forEach(function(e){e.textContent=t(e.dataset.t);});
+  document.querySelectorAll('[data-ph]').forEach(function(e){e.placeholder=t(e.dataset.ph);});
+  var l=document.getElementById('lgLangLbl'); if(l) l.textContent=lang==='ar'?'EN':'عربي';
+  var m=document.getElementById('more-langlbl'); if(m) m.textContent=lang==='ar'?'English':'العربية';
+  paintVerse(); buildNav(); renderSearch(); renderNotes();
+}
+function toggleLang(){ lang=lang==='ar'?'en':'ar'; localStorage.setItem('cs_lang',lang); applyLang(); }
+
+/* ================= DATA ================= */
+var UK='cs_users', SK='cs_session';
+var users=JSON.parse(localStorage.getItem(UK)||'{}');
+function saveUsers(){ localStorage.setItem(UK, JSON.stringify(users)); }
+var me=null; // current username
+var now=new Date(), dayIdx=(now.getDay()+1)%7;
+function wkId(){ var x=new Date(); x.setDate(x.getDate()-((x.getDay()+1)%7)); return x.toISOString().slice(0,10); }
+var WK=wkId();
+function ensure(u){ var d=users[u]; if(d.weekId!==WK){d.week={};d.weekId=WK;} return d; }
+Object.keys(users).forEach(ensure);
+
+/* login required EVERY time */
+localStorage.removeItem(SK);
+
+/* ================= NAV ================= */
+var icons={
+home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 3l9 8.5M5.5 10v10h13V10"/></svg>',
+bible:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 6c-2-1.6-5-2-8-1v14c3-1 6-.6 8 1 2-1.6 5-2 8-1V5c-3-1-6-.6-8 1zM12 6v14"/></svg>',
+agpeya:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+hymns:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>',
+saints:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>',
+camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="4"/></svg>',
+myPoints:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/><path d="M17 4h4M19 2v4"/></svg>',
+navNotes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg>',
+more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>'};
+function buildNav(){
+  document.querySelectorAll('.nav').forEach(function(n){
+    if(!n.id) return;
+    var cur=n.id.replace('nav-','');
+    if(cur==='notes') cur='navNotes';
+    if(cur==='redeem') cur='myPoints';
+    n.innerHTML=['home','camera','myPoints','navNotes','saints','more'].map(function(k){
+      return '<button class="'+(cur===k?'on':'')+'" data-nav="'+k+'">'+icons[k]+'<span>'+t(k)+'</span></button>';
+    }).join('');
+    n.querySelectorAll('button').forEach(function(b){
+      b.onclick=function(){ navGo(b.dataset.nav); };
+    });
+  });
+}
+function navGo(k){
+  if(k==='home') return go('scr-home');
+  if(k==='camera') return openCamera();
+  if(k==='myPoints') return go('scr-redeem');
+  if(k==='navNotes') return go('scr-notes');
+  if(k==='more') return go('scr-more');
+  if(k==='saints') return go('scr-search');
+  toast(t('app')+': '+t(k)+' ⏳');
+}
+var hist=[];
+function go(id){
+  document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
+  var el=document.getElementById(id); el.classList.add('on');
+  window.scrollTo(0,0);
+  if(id==='scr-home') paintHome();
+  if(id==='scr-search') renderSearch();
+  if(id==='scr-redeem') paintRedeem();
+  if(id==='scr-notes') renderNotes();
+}
+document.querySelectorAll('[data-back]').forEach(function(b){ b.onclick=function(){ hist.pop(); go(hist[hist.length-1]||'scr-home'); }; });
+
+var toastTimer;
+function toast(msg){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--line);padding:12px 20px;border-radius:12px;z-index:99;font-size:14px;max-width:90%;text-align:center;';
+  d.textContent=msg; document.body.appendChild(d);
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ d.remove(); },2200);
+}
+
+/* ================= AUTH ================= */
+function err(id,msg){ document.getElementById(id).textContent=msg; }
+document.getElementById('go-signup').onclick=function(){ document.getElementById('loginBox').style.display='none'; document.getElementById('signupBox').style.display='flex'; err('su-err',''); };
+document.getElementById('go-login').onclick=function(){ document.getElementById('signupBox').style.display='none'; document.getElementById('loginBox').style.display='flex'; err('li-err',''); };
+
+document.getElementById('li-btn').onclick=function(){
+  var u=document.getElementById('li-user').value.trim().toLowerCase(), p=document.getElementById('li-pass').value;
+  if(!users[u]) return err('li-err', t('noUser'));
+  if(users[u].pass!==p) return err('li-err', t('wrongPass'));
+  login(u);
+};
+document.getElementById('su-btn').onclick=function(){
+  var n=document.getElementById('su-name').value.trim(), u=document.getElementById('su-user').value.trim().toLowerCase(), p=document.getElementById('su-pass').value;
+  if(!n||!u||!p) return err('su-err', t('fillAll'));
+  if(p.length<4) return err('su-err', t('shortPass'));
+  if(users[u]) return err('su-err', t('taken'));
+  users[u]={name:n, pass:p, points:0, streak:0, week:{}, weekId:WK, notes:[], remind:false, chats:{}};
+  saveUsers(); login(u);
+};
+document.getElementById('li-pass').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('li-btn').click(); });
+
+function login(u){
+  me=u; ensure(u); localStorage.setItem(SK,u);
+  hist=['scr-home']; go('scr-home'); paintHome();
+}
+
+/* ================= HOME ================= */
+var verses=[['«فِي الْبَدْءِ كَانَ الْكَلِمَةُ»','يوحنا ١:١','"In the beginning was the Word"','John 1:1'],
+['«كُلُّ الْكِتَابِ هُوَ مُوحًى بِهِ مِنَ اللهِ»','٢ تيموثاوس ٣:١٦','"All Scripture is God-breathed"','2 Tim 3:16'],
+['«سِرَاجٌ لِرِجْلِي كَلاَمُكَ وَنُورٌ لِسَبِيلِي»','مزمور ١١٩:١٠٥','"Your word is a lamp to my feet"','Psalm 119:105'],
+['«اِسْأَلُوا فَيُعْطِيَكُمْ»','متى ٧:٧','"Ask and it will be given to you"','Matt 7:7'],
+['«هَيَّا نَصْعَدُ إِلَى جَبَلِ الرَّبِّ»','إشعياء ٢:٣','"Come, let us go up to the mountain of the Lord"','Isaiah 2:3'],
+['«كُونُوا فَرِحِينَ فِي الرَّجَاءِ»','رومية ١٢:١٢','"Be joyful in hope"','Romans 12:12'],
+['«الْمُحَبَّةُ تَصْبِرُ وَتَرْفُق»','١ كورنثوس ١٣:٤','"Love is patient, love is kind"','1 Cor 13:4']];
+var saints=[['القديس مار جرجس','7 برمودة – 23 أبريل','St. George','7 Parmoute – Apr 23'],
+['القديس الأنبا أنطونيوس','22 توت – 11 أكتوبر','St. Anthony the Great','22 Thout – Oct 11'],
+['القديسة العذراء مريم','21 توت – 10 أكتوبر','St. Mary','21 Thout – Oct 10'],
+['القديس الأنبا شنودة','7 أبيب – 1 يوليو','St. Shenouda','7 Abib – Jul 1'],
+['القديس الأنبا بيشوي','8 أبيب – 2 يوليو','St. Bishoy','8 Abib – Jul 2'],
+['القديس أبانوب','24 توت – 13 أكتوبر','St. Abanoub','24 Thout – Oct 13'],
+['القديسة دميانة','13 برمودة – 22 مايو','St. Demiana','13 Parmoute – May 22']];
+function paintVerse(){
+  var v=verses[dayIdx%7], s=saints[dayIdx%7];
+  document.getElementById('h-verse').textContent=lang==='ar'?v[0]:v[2];
+  document.getElementById('h-vref').textContent=lang==='ar'?v[1]:v[3];
+  document.getElementById('h-saint').textContent=lang==='ar'?s[0]:s[2];
+  document.getElementById('h-sdate').textContent=lang==='ar'?s[1]:s[3];
+}
+function paintHome(){
+  var d=users[me];
+  document.getElementById('h-pts').textContent=d.points;
+  document.getElementById('h-str').textContent=d.streak;
+  document.getElementById('h-remind').checked=!!d.remind;
+  var done=!!d.week[dayIdx];
+  var b=document.getElementById('h-read');
+  b.textContent=done?(lang==='ar'?'✅ تمت القراءة اليوم':'✅ Done today'):t('startReading');
+  b.onclick=function(){ if(done) toast(t('doneToday')); else openCamera(); };
+  paintVerse();
+}
+document.getElementById('h-remind').onchange=function(e){ users[me].remind=e.target.checked; saveUsers(); if(e.target.checked) toast(lang==='ar'?'🌅 ٦ صباحاً + 🌙 ٩ مساءً':'🌅 6 AM + 🌙 9 PM'); };
+document.getElementById('home-cam').onclick=openCamera;
+document.getElementById('home-lang').onclick=toggleLang;
+document.getElementById('lgLang').onclick=toggleLang;
+
+/* ================= CAMERA ================= */
+var stream=null, video=document.getElementById('cam-vid');
+function stopCam(){ if(stream){stream.getTracks().forEach(function(x){x.stop();}); stream=null;} }
+function openCamera(){
+  if(users[me].week[dayIdx]) return toast(t('doneToday'));
+  go('scr-cam'); hist.push('scr-cam');
+  document.getElementById('cam-fallback').style.display='none';
+  document.getElementById('cam-prev').style.display='none';
+  document.getElementById('cam-prev').style.flexDirection='column';
+  video.style.display='block';
+  document.getElementById('cam-snap').style.display='none';
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(s){
+      stream=s; video.srcObject=s;
+      document.getElementById('cam-snap').style.display='block';
+    }).catch(camFail);
+  } else camFail();
+  function camFail(){ stopCam(); video.style.display='none'; document.getElementById('cam-fallback').style.display='block'; }
+}
+document.getElementById('cam-x').onclick=function(){ stopCam(); hist.pop(); go('scr-home'); };
+document.getElementById('cam-snap').onclick=function(){
+  var c=document.getElementById('cam-canvas'), x=c.getContext('2d');
+  c.width=video.videoWidth||720; c.height=video.videoHeight||960;
+  x.drawImage(video,0,0,c.width,c.height);
+  stopCam(); showPrev();
+};
+document.getElementById('cam-file').onchange=function(e){
+  var f=e.target.files[0]; if(!f) return;
+  var img=new Image();
+  img.onload=function(){
+    var c=document.getElementById('cam-canvas'), x=c.getContext('2d');
+    c.width=img.width; c.height=img.height; x.drawImage(img,0,0);
+    stopCam(); showPrev();
+  };
+  img.src=URL.createObjectURL(f);
+};
+function showPrev(){ video.style.display='none'; var p=document.getElementById('cam-prev'); p.style.display='flex'; }
+document.getElementById('cam-retake').onclick=openCamera;
+document.getElementById('cam-ok').onclick=verify;
+
+function verify(){
+  var ov=document.getElementById('ai-ov');
+  var c=document.getElementById('cam-canvas'), x=c.getContext('2d');
+  var d=x.getImageData(0,0,c.width,c.height).data, sum=0, sq=0, n=0;
+  for(var i=0;i<d.length;i+=500){ var v=(d[i]+d[i+1]+d[i+2])/3; sum+=v; sq+=v*v; n++; }
+  var blank=(sq/n-Math.pow(sum/n,2))<40;
+  var steps=lang==='ar'?['📤 بيتم رفع الصورة…','🧠 الذكاء الاصطناعي بيفحص النصوص…','🔍 مطابقة مع نصوص الكتاب المقدس…','⚖️ تقييم أهلية الصورة…']:['📤 Uploading photo…','🧠 AI scanning the text…','🔍 Matching Bible verses…','⚖️ Evaluating image…'];
+  var i=0;
+  ov.style.display='flex';
+  ov.innerHTML='<div class="spin">✝</div><div id="aiStep" style="font-size:15px; min-height:24px;">'+steps[0]+'</div>';
+  var timer=setInterval(function(){
+    i++;
+    if(i<steps.length){ var el=document.getElementById('aiStep'); if(el) el.textContent=steps[i]; }
+    else{
+      clearInterval(timer);
+      if(blank){
+        ov.innerHTML='<div style="font-size:44px;">❌</div><div style="font-weight:700; font-size:17px;">'+t('badImg')+'</div><button class="btn2" id="aiB" style="background:#fff; color:#000; border:none;">OK</button>';
+        document.getElementById('aiB').onclick=function(){ ov.style.display='none'; openCamera(); };
+      } else {
+        var u=users[me];
+        u.week[dayIdx]=true; u.points+=20; u.streak+=1; saveUsers();
+        ov.innerHTML='<div style="font-size:44px;">✅</div><div style="font-weight:700; font-size:17px;">'+t('verifyOk')+'</div><div style="font-size:20px; font-weight:700; color:var(--gold);">'+t('ptsAdded')+' 🎉</div><div style="font-size:14px; opacity:.85;">'+t('streakNow')+' <b>'+u.streak+'</b> · '+t('ptsBal')+' <b>'+u.points+'</b></div><button class="btn2" id="aiB" style="background:#fff; color:#000; border:none;">🤍 Amen</button>';
+        document.getElementById('aiB').onclick=function(){ ov.style.display='none'; hist.pop(); go('scr-home'); };
+      }
+    }
+  },800);
+}
+
+/* ================= SEARCH ================= */
+document.getElementById('srch-in').addEventListener('input',renderSearch);
+function renderSearch(){
+  var q=(document.getElementById('srch-in').value||'').trim().toLowerCase();
+  var box=document.getElementById('srch-res'); box.innerHTML='';
+  var list=Object.keys(users).filter(function(u){ return u!==me && u.indexOf(q)!==-1; });
+  if(!list.length){ box.innerHTML='<div class="mut sm center" style="padding:20px;">'+t('noResults')+' · '+Object.keys(users).length+' '+t('members')+'</div>'; return; }
+  list.forEach(function(u){
+    var d=users[u];
+    var el=document.createElement('div'); el.className='listitem';
+    el.innerHTML='<div style="display:flex; align-items:center; gap:12px;"><div class="avt">'+d.name.charAt(0).toUpperCase()+'</div><div><div style="font-weight:600;">'+d.name+'</div><div class="mut sm">@'+u+' · 🔥 '+d.streak+' · <span style="color:var(--green);">● '+t('online')+'</span></div></div></div><span class="mut">‹</span>';
+    el.onclick=function(){ openProfile(u); };
+    box.appendChild(el);
+  });
+}
+var viewing=null;
+function openProfile(u){
+  viewing=u; var d=users[u];
+  document.getElementById('pf-avt').textContent=d.name.charAt(0).toUpperCase();
+  document.getElementById('pf-name').textContent=d.name;
+  document.getElementById('pf-user').textContent='@'+u;
+  document.getElementById('pf-pts').textContent=d.points;
+  document.getElementById('pf-str').textContent=d.streak;
+  hist.push('scr-profile'); go('scr-profile');
+}
+document.getElementById('pf-chat').onclick=function(){ openChat(viewing); };
+
+/* ================= CHAT ================= */
+function openChat(u){
+  hist.push('scr-chat'); go('scr-chat');
+  document.getElementById('ch-name').textContent=users[u].name;
+  renderChat(u);
+  var send=function(){
+    var inp=document.getElementById('ch-in'); if(!inp.value.trim()) return;
+    pushMsg(me,u,inp.value.trim()); inp.value='';
+    setTimeout(function(){
+      var reps=lang==='ar'?['ما شاء الله عليك 🤍','آمين! ربنا يبارك في وقتك معاه','كمّل، الستريك بيفرق فعلاً 💪','وأنا كمان قريت النهاردة 🙏']:['God bless you 🤍','Amen! Keep going','Your streak inspires me 💪','I read today too 🙏'];
+      pushMsg(u,me,reps[Math.floor(Math.random()*reps.length)]);
+    },1000);
+  };
+  document.getElementById('ch-send').onclick=send;
+  document.getElementById('ch-in').onkeydown=function(e){ if(e.key==='Enter') send(); };
+}
+function pushMsg(frm,to,txt){
+  var key=[frm,to].sort().join('|');
+  var th=users[frm].chats[key]||(users[frm].chats[key]=[]);
+  th.push([frm,txt]); saveUsers(); renderChat(to);
+}
+function renderChat(u){
+  var key=[me,u].sort().join('|');
+  var th=users[me].chats[key]||[];
+  var box=document.getElementById('ch-box'); box.innerHTML='';
+  th.forEach(function(m){
+    var d=document.createElement('div');
+    d.className='msg '+(m[0]===me?'me':'them'); d.textContent=m[1];
+    box.appendChild(d);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+
+/* ================= NOTES ================= */
+document.getElementById('nt-add').onclick=function(){
+  var v=document.getElementById('nt-in').value.trim(); if(!v) return;
+  users[me].notes.unshift({d:new Date().toLocaleDateString(lang==='ar'?'ar-EG':'en-GB'), t:v});
+  document.getElementById('nt-in').value=''; saveUsers(); renderNotes();
+};
+function renderNotes(){
+  var list=document.getElementById('nt-list'); if(!list) return;
+  if(!me||!users[me]) return;
+  var ns=users[me].notes; list.innerHTML='';
+  if(!ns.length){ list.innerHTML='<div class="mut sm center" style="padding:16px;">🕊</div>'; return; }
+  ns.forEach(function(n,i){
+    var el=document.createElement('div'); el.className='card';
+    el.innerHTML='<div class="row"><span class="mut sm">'+n.d+'</span><button class="btn2" style="padding:2px 10px; color:var(--red); border:none;">✕</button></div><div style="font-size:15px; line-height:24px; margin-top:6px;"></div>';
+    el.querySelector('div div:last-child').textContent=n.t;
+    el.querySelector('button').onclick=function(){ users[me].notes.splice(i,1); saveUsers(); renderNotes(); };
+    list.appendChild(el);
+  });
+}
+
+/* ================= REDEEM ================= */
+function paintRedeem(){ document.getElementById('rd-pts').textContent=users[me].points; updWA(); }
+document.getElementById('rd-amt').addEventListener('input',updWA);
+function updWA(){
+  var amt=+(document.getElementById('rd-amt').value||0);
+  var ok=amt>0&&users[me].points>=amt;
+  var a=document.getElementById('rd-wa');
+  a.href='https://wa.me/201283322312?text='+encodeURIComponent(t('redeemAsk')+': '+amt);
+  a.style.opacity=ok?1:.4; a.style.pointerEvents=ok?'auto':'none';
+}
+
+/* ================= MORE ================= */
+document.querySelectorAll('[data-go]').forEach(function(el){ el.onclick=function(){ hist.push(el.dataset.go); go(el.dataset.go); }; });
+document.getElementById('more-lang').onclick=toggleLang;
+document.getElementById('more-logout').onclick=function(){
+  me=null; localStorage.removeItem(SK);
+  document.getElementById('loginBox').style.display='flex';
+  document.getElementById('signupBox').style.display='none';
+  document.getElementById('li-user').value=''; document.getElementById('li-pass').value='';
+  err('li-err',''); go('scr-login'); toast(t('loggedOut'));
+};
+
+applyLang();
+</script>
+</body>
+</html>
